@@ -56,9 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 void loq(int index, const char *category, const char *name,
-    int is_success, int return_value, const char *fmt, ...);
-void loqc(int index, const char *category, const char *name,
-    int is_success,void* caller, int return_value, const char *fmt, ...);
+    int is_success, void* caller, int return_value, const char *fmt, ...);
 void log_new_process();
 void log_new_thread();
 void log_anomaly(const char *subcategory, int success,
@@ -74,12 +72,12 @@ extern const char *logtbl[][2];
 extern int g_log_index;
 
 #define LOQ(fmt, ...) { static int _index; if(_index == 0) \
-    _index = ++g_log_index; loqc(_index, category, \
-    &__FUNCTION__[4], is_success(ret),(void*) get_real_caller_address(), (int) ret, fmt, ##__VA_ARGS__); }
+    _index = ++g_log_index; loq(_index, category, \
+    &__FUNCTION__[4], is_success(ret), (void*) get_real_caller_address(), (int) ret, fmt, ##__VA_ARGS__); }
 
 #define LOQspecial(fmt, ...) { static int _index; if(_index == 0) \
     _index = ++g_log_index; loq(_index, category, \
-    &__FUNCTION__[5], is_success(ret), (int) ret, fmt, ##__VA_ARGS__); }
+    &__FUNCTION__[5], is_success(ret), (void*) get_real_caller_address(), (int) ret, fmt, ##__VA_ARGS__); }
 
 #define IS_SUCCESS_NTSTATUS() int is_success(NTSTATUS ret) { \
     return NT_SUCCESS(ret); }
