@@ -506,12 +506,13 @@ void log_new_process()
     FILETIME st;
     GetSystemTimeAsFileTime(&st);
 
-    loq(LOG_ID_PROCESS, "__notification__", "__process__", 1, 0, 0, "llllu",
+    loq(LOG_ID_PROCESS, "__notification__", "__process__", 1, 0, 0, "llllui",
         "TimeLow", st.dwLowDateTime,
         "TimeHigh", st.dwHighDateTime,
         "ProcessIdentifier", GetCurrentProcessId(),
         "ParentProcessIdentifier", parent_process_id(),
-        "ModulePath", module_path);
+        "ModulePath", module_path,
+        "BaseAddress", getBaseAddress());
 }
 
 void log_new_thread()

@@ -1,4 +1,3 @@
-
 #include "ntapi.h"
 #include "hooking.h"
 
@@ -28,6 +27,8 @@ static __inline__ void * get_caller_address(){
 uint8_t check_caller_address_in_text(void *caller);
 
 uint8_t check_caller_address_in_module(void *caller);
+
+unsigned int getBaseAddress();
 
 
 static __inline__ void * get_real_caller_address()  __attribute__((always_inline));
@@ -87,3 +88,4 @@ static __inline__ void * get_real_caller_address(){
   }
   return caller;
 }
+

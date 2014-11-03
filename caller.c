@@ -32,3 +32,10 @@ uint8_t check_caller_address_in_module(void *caller){
   }while(module != stop);
   return 0;
 }
+
+unsigned int getBaseAddress(){
+  PPEB peb = get_PEB();
+  PLDR_MODULE module = (PLDR_MODULE) peb->LoaderData->InLoadOrderModuleList.Flink;
+  return (unsigned int) module->BaseAddress;
+}
+
