@@ -24,10 +24,17 @@ CAPSTONELIB = capstone/capstone.lib
 BSONSRC = bson/bson.c bson/encoding.c bson/numbers.c
 BSONOBJ = $(OBJDIR)/bson/bson.o $(OBJDIR)/bson/encoding.o $(OBJDIR)/bson/numbers.o
 
+POLARSSLSRC = $(wildcard polarssl/*.c)
+POLARSSLOBJ = $(POLARSSLSRC:%.c=$(OBJDIR)/%.o)
+
+
 default: $(CAPSTONELIB) $(OBJDIR) cuckoomon.dll
 
 $(OBJDIR):
-	mkdir $@ $@/bson $@/capstone
+	mkdir $@ $@/bson $@/capstone $@/polarssl
+
+$(OBJDIR)/polarssl/%.o: polarssl/%.c
+	$(CC) $(CFLAGS) $(DIRS) -c $^ -o $@
 
 $(OBJDIR)/bson/%.o: bson/%.c
 	$(CC) $(CFLAGS) $(DIRS) -c $^ -o $@
@@ -40,7 +47,7 @@ $(CAPSTONELIB):
 	cp capstone-config.mk capstone/config.mk && \
 	cd capstone && ./make.sh cross-win32
 
-cuckoomon.dll: $(CUCKOOOBJ) $(BSONOBJ) $(CAPSTONELIB)
+cuckoomon.dll: $(CUCKOOOBJ) $(BSONOBJ) $(POLARSSLOBJ) $(CAPSTONELIB)
 	$(CC) $(CFLAGS) $(DLL) $(DIRS) -o $@ $^ $(LIBS)
 
 clean:

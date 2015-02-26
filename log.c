@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "utf8.h"
 #include "log.h"
 #include "bson.h"
+#include "polarssl/sha256.h"
 
 // the size of the logging buffer
 #define BUFFERSIZE 1024 * 1024
@@ -501,18 +502,25 @@ void log_new_process()
     wchar_t module_path[MAX_PATH];
     GetModuleFileNameW(NULL, module_path, ARRAYSIZE(module_path));
 
+    char module_pathA[MAX_PATH];
+    GetModuleFileNameA(NULL, module_pathA, ARRAYSIZE(module_pathA));
+
     g_starttick = GetTickCount();
 
     FILETIME st;
     GetSystemTimeAsFileTime(&st);
 
-    loq(LOG_ID_PROCESS, "__notification__", "__process__", 1, 0, 0, "llllui",
+    unsigned char sha256[32];
+    sha256_file(module_pathA, sha256, 0);
+
+    loq(LOG_ID_PROCESS, "__notification__", "__process__", 1, 0, 0, "lllluib",
         "TimeLow", st.dwLowDateTime,
         "TimeHigh", st.dwHighDateTime,
         "ProcessIdentifier", GetCurrentProcessId(),
         "ParentProcessIdentifier", parent_process_id(),
         "ModulePath", module_path,
-        "BaseAddress", getBaseAddress());
+        "BaseAddress", getBaseAddress(),
+        "FileHash", 32, sha256);
 }
 
 void log_new_thread()
