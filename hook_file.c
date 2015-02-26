@@ -186,8 +186,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtReadFile,
 ) {
     NTSTATUS ret = Old_NtReadFile(FileHandle, Event, ApcRoutine, ApcContext,
         IoStatusBlock, Buffer, Length, ByteOffset, Key);
-    LOQ("pb", "FileHandle", FileHandle,
-        "Buffer", IoStatusBlock->Information, Buffer);
+    LOQ("pbpl", "FileHandle", FileHandle,
+        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, "BufferLen", Length);
     return ret;
 }
 
@@ -204,8 +204,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtWriteFile,
 ) {
     NTSTATUS ret = Old_NtWriteFile(FileHandle, Event, ApcRoutine, ApcContext,
         IoStatusBlock, Buffer, Length, ByteOffset, Key);
-    LOQ("pb", "FileHandle", FileHandle,
-        "Buffer", IoStatusBlock->Information, Buffer);
+    LOQ("pbpl", "FileHandle", FileHandle,
+        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, "BufferLen", Length);
     if(NT_SUCCESS(ret)) {
         file_write(FileHandle);
     }
@@ -238,9 +238,11 @@ HOOKDEF(NTSTATUS, WINAPI, NtDeviceIoControlFile,
         ApcRoutine, ApcContext, IoStatusBlock, IoControlCode,
         InputBuffer, InputBufferLength, OutputBuffer,
         OutputBufferLength);
-    LOQ("pbb", "FileHandle", FileHandle,
+    LOQ("pbbplpl", "FileHandle", FileHandle,
         "InputBuffer", InputBufferLength, InputBuffer,
-        "OutputBuffer", IoStatusBlock->Information, OutputBuffer);
+        "OutputBuffer", IoStatusBlock->Information, OutputBuffer, 
+        "InputBufferPtr", InputBuffer, "InputBufferLen", InputBufferLength, 
+        "OutputBufferPtr", OutputBuffer, "OutputBufferLen", OutputBufferLength);
     return ret;
 }
 
