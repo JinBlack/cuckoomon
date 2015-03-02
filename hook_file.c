@@ -142,13 +142,13 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateFile,
     __in      ULONG CreateOptions,
     __in      PVOID EaBuffer,
     __in      ULONG EaLength
-) {
+) { 
     NTSTATUS ret = Old_NtCreateFile(FileHandle, DesiredAccess,
         ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes,
         ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
-    LOQ("PpOll", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
+    LOQ("PpOllpi", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
         "FileName", ObjectAttributes, "CreateDisposition", CreateDisposition,
-        "ShareAccess", ShareAccess);
+        "ShareAccess", ShareAccess, "ObjectAttributesPtr", ObjectAttributes, "ObjectAttributesLen", sizeof(OBJECT_ATTRIBUTES));
     if(NT_SUCCESS(ret) && DesiredAccess & DUMP_FILE_MASK) {
         handle_new_file(*FileHandle, ObjectAttributes);
     }
