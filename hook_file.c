@@ -146,9 +146,11 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateFile,
     NTSTATUS ret = Old_NtCreateFile(FileHandle, DesiredAccess,
         ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes,
         ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
-    LOQ("PpOllpi", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
+    LOQ("PpOllpppi", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
         "FileName", ObjectAttributes, "CreateDisposition", CreateDisposition,
-        "ShareAccess", ShareAccess, "ObjectAttributesPtr", ObjectAttributes, "ObjectAttributesLen", sizeof(OBJECT_ATTRIBUTES));
+        "ShareAccess", ShareAccess, "ObjectAttributesPtr", ObjectAttributes, 
+        "IoStatusBlockPtr", IoStatusBlock, "EaBufferPtr", EaBuffer,
+        "EaBufferLen", EaLength);
     if(NT_SUCCESS(ret) && DesiredAccess & DUMP_FILE_MASK) {
         handle_new_file(*FileHandle, ObjectAttributes);
     }
@@ -165,8 +167,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenFile,
 ) {
     NTSTATUS ret = Old_NtOpenFile(FileHandle, DesiredAccess, ObjectAttributes,
         IoStatusBlock, ShareAccess, OpenOptions);
-    LOQ("PpOl", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
-        "FileName", ObjectAttributes, "ShareAccess", ShareAccess);
+    LOQ("PpOlpp", "FileHandle", FileHandle, "DesiredAccess", DesiredAccess,
+        "FileName", ObjectAttributes, "ShareAccess", ShareAccess, 
+        "ObjectAttributesPtr", ObjectAttributes, "IoStatusBlockPtr", IoStatusBlock);
     if(NT_SUCCESS(ret) && DesiredAccess & DUMP_FILE_MASK) {
         handle_new_file(*FileHandle, ObjectAttributes);
     }
@@ -187,7 +190,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtReadFile,
     NTSTATUS ret = Old_NtReadFile(FileHandle, Event, ApcRoutine, ApcContext,
         IoStatusBlock, Buffer, Length, ByteOffset, Key);
     LOQ("pbpl", "FileHandle", FileHandle,
-        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, "BufferLen", Length);
+        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, 
+        "BufferLen", Length, "IoStatusBlockPtr", IoStatusBlock, 
+        "ByteOffsetPtr", ByteOffset);
     return ret;
 }
 
@@ -205,7 +210,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtWriteFile,
     NTSTATUS ret = Old_NtWriteFile(FileHandle, Event, ApcRoutine, ApcContext,
         IoStatusBlock, Buffer, Length, ByteOffset, Key);
     LOQ("pbpl", "FileHandle", FileHandle,
-        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, "BufferLen", Length);
+        "Buffer", IoStatusBlock->Information, Buffer, "BufferPtr", Buffer, 
+        "BufferLen", Length, "IoStatusBlockPtr", IoStatusBlock, 
+        "ByteOffsetPtr", ByteOffset);
     if(NT_SUCCESS(ret)) {
         file_write(FileHandle);
     }
@@ -218,7 +225,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtDeleteFile,
     pipe("FILE_DEL:%O", ObjectAttributes);
 
     NTSTATUS ret = Old_NtDeleteFile(ObjectAttributes);
-    LOQ("O", "FileName", ObjectAttributes);
+    LOQ("O", "FileName", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes);
     return ret;
 }
 
