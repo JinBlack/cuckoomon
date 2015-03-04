@@ -27,7 +27,7 @@ static IS_SUCCESS_LONGREG();
 
 HOOKDEF(LONG, WINAPI, RegOpenKeyExA,
     __in        HKEY hKey,
-    __in_opt    lpcbSecurityDescriptor lpSubKey,
+    __in_opt    LPCTSTR lpSubKey,
     __reserved  DWORD ulOptions,
     __in        REGSAM samDesired,
     __out       PHKEY phkResult
