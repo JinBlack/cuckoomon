@@ -37,8 +37,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateKey,
 ) {
     NTSTATUS ret = Old_NtCreateKey(KeyHandle, DesiredAccess, ObjectAttributes,
         TitleIndex, Class, CreateOptions, Disposition);
-    LOQ("Ploo", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
+    LOQ("Ploppio", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
         "ObjectAttributes", unistr_from_objattr(ObjectAttributes),
+        "ObjectAttributesPtr", ObjectAttributes, "ClassBufferPtr", Class->Buffer,
+        "ClassBufferLen", Class->Length,
         "Class", Class);
     return ret;
 }
