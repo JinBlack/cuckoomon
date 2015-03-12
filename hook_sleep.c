@@ -56,7 +56,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtDelayExecution,
 
             // notify how much we've skipped
             unsigned long milli = -DelayInterval->QuadPart / 10000;
-            LOQ("ls", "Milliseconds", milli, "Status", "Skipped");
+            LOQ("lsp", "Milliseconds", milli, "Status", "Skipped",
+                "DelayIntervalPtr", DelayInterval);
             return ret;
         }
         else {
@@ -64,7 +65,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtDelayExecution,
         }
     }
     unsigned long milli = -DelayInterval->QuadPart / 10000;
-    LOQ("l", "Milliseconds", milli);
+    LOQ("lp", "Milliseconds", milli, "DelayIntervalPtr", DelayInterval);
     return Old_NtDelayExecution(Alertable, DelayInterval);
 }
 
@@ -116,6 +117,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtQuerySystemTime,
     if(NT_SUCCESS(ret)) {
         SystemTime->QuadPart += time_skipped.QuadPart;
     }
+    LOQ("p", "SystemTimePtr", SystemTime);
     return 0;
 }
 
