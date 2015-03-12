@@ -43,8 +43,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateThread,
     NTSTATUS ret = Old_NtCreateThread(ThreadHandle, DesiredAccess,
         ObjectAttributes, ProcessHandle, ClientId, ThreadContext,
         InitialTeb, CreateSuspended);
-    LOQ("PpO", "ThreadHandle", ThreadHandle, "ProcessHandle", ProcessHandle,
-        "ObjectAttributes", ObjectAttributes);
+    LOQ("PpOpppp", "ThreadHandle", ThreadHandle, "ProcessHandle", ProcessHandle,
+        "ObjectAttributes", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes,
+        "ClientIdPtr", ClientId, "ThreadContextPtr", ThreadContext, 
+        "InitialTebPtr", InitialTeb);
     if(NT_SUCCESS(ret)) {
         disable_sleep_skip();
     }
@@ -68,8 +70,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateThreadEx,
         ObjectAttributes, ProcessHandle, lpStartAddress, lpParameter,
         CreateSuspended, StackZeroBits, SizeOfStackCommit, SizeOfStackReserve,
         lpBytesBuffer);
-    LOQ("Pppl", "ThreadHandle", hThread, "ProcessHandle", ProcessHandle,
-        "StartAddress", lpStartAddress, "CreateSuspended", CreateSuspended);
+    LOQ("Ppplpp", "ThreadHandle", hThread, "ProcessHandle", ProcessHandle,
+        "StartAddress", lpStartAddress, "CreateSuspended", CreateSuspended,
+        "ObjectAttributesPtr", ObjectAttributes, "lpParameterPtr", lpParameter);
     return ret;
 }
 
@@ -81,8 +84,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenThread,
 ) {
     NTSTATUS ret = Old_NtOpenThread(ThreadHandle, DesiredAccess,
         ObjectAttributes, ClientId);
-    LOQ("PlO", "ThreadHandle", ThreadHandle, "DesiredAccess", DesiredAccess,
-        "ObjectAttributes", ObjectAttributes);
+    LOQ("PlOpp", "ThreadHandle", ThreadHandle, "DesiredAccess", DesiredAccess,
+        "ObjectAttributes", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes,
+        "ClientIdPtr", ClientId);
     if(NT_SUCCESS(ret)) {
         // TODO: are we sure that OpenThread specifies the PID?
         pipe("PROCESS:%d", ClientId->UniqueProcess);
@@ -95,7 +99,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtGetContextThread,
     __inout  LPCONTEXT Context
 ) {
     NTSTATUS ret = Old_NtGetContextThread(ThreadHandle, Context);
-    LOQ("p", "ThreadHandle", ThreadHandle);
+    LOQ("pp", "ThreadHandle", ThreadHandle, "ContextPtr", Context);
     return ret;
 }
 
@@ -104,7 +108,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtSetContextThread,
     __in  const CONTEXT *Context
 ) {
     NTSTATUS ret = Old_NtSetContextThread(ThreadHandle, Context);
-    LOQ("p", "ThreadHandle", ThreadHandle);
+    LOQ("pp", "ThreadHandle", ThreadHandle, "ContextPtr", Context);
 
     pipe("PROCESS:%d", pid_from_thread_handle(ThreadHandle));
     return ret;
@@ -117,8 +121,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtSuspendThread,
     ENSURE_ULONG(PreviousSuspendCount);
 
     NTSTATUS ret = Old_NtSuspendThread(ThreadHandle, PreviousSuspendCount);
-    LOQ("pL", "ThreadHandle", ThreadHandle,
-        "SuspendCount", PreviousSuspendCount);
+    LOQ("pLp", "ThreadHandle", ThreadHandle,
+        "SuspendCount", PreviousSuspendCount, "PreviousSuspendCountPtr", PreviousSuspendCount);
     return ret;
 }
 
@@ -129,7 +133,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtResumeThread,
     ENSURE_ULONG(SuspendCount);
 
     NTSTATUS ret = Old_NtResumeThread(ThreadHandle, SuspendCount);
-    LOQ("pL", "ThreadHandle", ThreadHandle, "SuspendCount", SuspendCount);
+    LOQ("pLp", "ThreadHandle", ThreadHandle, "SuspendCount", SuspendCount, 
+        "SuspendCountPtr", SuspendCount);
     return ret;
 }
 
