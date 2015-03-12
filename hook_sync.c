@@ -33,9 +33,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateMutant,
 ) {
     NTSTATUS ret = Old_NtCreateMutant(MutantHandle, DesiredAccess,
         ObjectAttributes, InitialOwner);
-    LOQ("Pol", "Handle", MutantHandle,
+    LOQ("Polp", "Handle", MutantHandle,
         "MutexName", unistr_from_objattr(ObjectAttributes),
-        "InitialOwner", InitialOwner);
+        "InitialOwner", InitialOwner,
+        "ObjectAttributesPtr", ObjectAttributes);
     return ret;
 }
 
@@ -46,8 +47,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenMutant,
 ) {
     NTSTATUS ret = Old_NtOpenMutant(MutantHandle, DesiredAccess,
         ObjectAttributes);
-    LOQ("Po", "Handle", MutantHandle,
-        "MutexName", unistr_from_objattr(ObjectAttributes));
+    LOQ("Pop", "Handle", MutantHandle,
+        "MutexName", unistr_from_objattr(ObjectAttributes),
+        "ObjectAttributesPtr", ObjectAttributes);
     return ret;
 }
 
@@ -72,8 +74,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateNamedPipeFile,
         CreateDisposition, CreateOptions, WriteModeMessage, ReadModeMessage,
         NonBlocking, MaxInstances, InBufferSize, OutBufferSize,
         DefaultTimeOut);
-    LOQ("PpOl", "NamedPipeHandle", NamedPipeFileHandle,
+    LOQ("PpOlppp", "NamedPipeHandle", NamedPipeFileHandle,
         "DesiredAccess", DesiredAccess, "PipeName", ObjectAttributes,
-        "ShareAccess", ShareAccess);
+        "ShareAccess", ShareAccess, "ObjectAttributesPtr", ObjectAttributes,
+        "IoStatusBlockPtr", IoStatusBlock, "DefaultTimeOutPtr", DefaultTimeOut);
     return ret;
 }
