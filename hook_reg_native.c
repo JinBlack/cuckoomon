@@ -37,10 +37,11 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateKey,
 ) {
     NTSTATUS ret = Old_NtCreateKey(KeyHandle, DesiredAccess, ObjectAttributes,
         TitleIndex, Class, CreateOptions, Disposition);
-    LOQ("Ploppio", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
+    LOQ("Plopipio", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
         "ObjectAttributes", unistr_from_objattr(ObjectAttributes),
-        "ObjectAttributesPtr", ObjectAttributes, "ClassBufferPtr", Class->Buffer,
-        "ClassBufferLen", Class->Length,
+        "ObjectAttributesPtr", ObjectAttributes->ObjectName->Buffer, "ObjectAttributesLen", ObjectAttributes->ObjectName->Length, 
+        "ClassPtr", Class->Buffer,
+        "ClassLen", Class->Length,
         "Class", Class);
     return ret;
 }
@@ -51,9 +52,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenKey,
     __in   POBJECT_ATTRIBUTES ObjectAttributes
 ) {
     NTSTATUS ret = Old_NtOpenKey(KeyHandle, DesiredAccess, ObjectAttributes);
-    LOQ("Plop", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
+    LOQ("Plopi", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
         "ObjectAttributes", unistr_from_objattr(ObjectAttributes),
-        "ObjectAttributesPtr", ObjectAttributes);
+        "ObjectAttributesPtr", ObjectAttributes->ObjectName->Buffer, "ObjectAttributesLen", ObjectAttributes->ObjectName->Length);
     return ret;
 }
 
@@ -65,9 +66,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenKeyEx,
 ) {
     NTSTATUS ret = Old_NtOpenKeyEx(KeyHandle, DesiredAccess, ObjectAttributes,
         OpenOptions);
-    LOQ("Plop", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
+    LOQ("Plopi", "KeyHandle", KeyHandle, "DesiredAccess", DesiredAccess,
         "ObjectAttributes", unistr_from_objattr(ObjectAttributes),
-        "ObjectAttributesPtr", ObjectAttributes);
+        "ObjectAttributesPtr", ObjectAttributes->ObjectName->Buffer, "ObjectAttributesLen", ObjectAttributes->ObjectName->Length);
     return ret;
 }
 
@@ -91,8 +92,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtReplaceKey,
     LOQ("poopp", "KeyHandle", KeyHandle,
         "NewHiveFileName", unistr_from_objattr(NewHiveFileName),
         "BackupHiveFileName", unistr_from_objattr(BackupHiveFileName),
-        "NewHiveFileNamePtr", NewHiveFileName,
-        "BackupHiveFileNamePtr", BackupHiveFileName);
+        "NewHiveFileNamePtr", NewHiveFileName->ObjectName->Buffer,
+        "NewHiveFileNameLen", NewHiveFileName->ObjectName->Length,
+        "BackupHiveFileNamePtr", BackupHiveFileName->ObjectName->Buffer,
+        "BackupHiveFileNameLen", BackupHiveFileName->ObjectName->Length);
     return ret;
 }
 
@@ -106,9 +109,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtEnumerateKey,
 ) {
     NTSTATUS ret = Old_NtEnumerateKey(KeyHandle, Index, KeyInformationClass,
         KeyInformation, Length, ResultLength);
-    LOQ("pllpip", "KeyHandle", KeyHandle, "Index", Index,
+    LOQ("pllpi", "KeyHandle", KeyHandle, "Index", Index,
         "KeyInformationClass", KeyInformationClass, "KeyInformationPtr", KeyInformation,
-        "KeyInformationLen", Length, "ResultLengthPtr", ResultLength);
+        "KeyInformationLen", *ResultLength);
     return ret;
 }
 
@@ -122,9 +125,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtEnumerateValueKey,
 ) {
     NTSTATUS ret = Old_NtEnumerateValueKey(KeyHandle, Index,
         KeyValueInformationClass, KeyValueInformation, Length, ResultLength);
-    LOQ("pllpip", "KeyHandle", KeyHandle, "Index", Index,
+    LOQ("pllpi", "KeyHandle", KeyHandle, "Index", Index,
         "KeyValueInformationClass", KeyValueInformationClass, "KeyValueInformationPtr", KeyValueInformation,
-        "KeyValueInformationLen", Length, "ResultLengthPtr", ResultLength);
+        "KeyValueInformationLen", *ResultLength);
     return ret;
 }
 
@@ -184,10 +187,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtQueryValueKey,
             Data = p->Data;
         }
 
-        LOQ("polRlpippi", "KeyHandle", KeyHandle, "ValueName", ValueName,
+        LOQ("polRlpipi", "KeyHandle", KeyHandle, "ValueName", ValueName,
             "Type", Type, "Information", Type, DataLength, Data,
             "KeyValueInformationClass", KeyValueInformationClass, "KeyValueInformationPtr", KeyValueInformation,
-            "KeyValueInformationLen", Length, "ResultLengthPtr", ResultLength,
+            "KeyValueInformationLen", *ResultLength,
             "ValueNameBuffer", ValueName->Buffer, "ValueNameLen", ValueName->Length);
     }
     else {
@@ -238,9 +241,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtLoadKey,
     __in  POBJECT_ATTRIBUTES SourceFile
 ) {
     NTSTATUS ret = Old_NtLoadKey(TargetKey, SourceFile);
-    LOQ("oopp", "TargetKey", unistr_from_objattr(TargetKey),
+    LOQ("oopipi", "TargetKey", unistr_from_objattr(TargetKey),
         "SourceFile", unistr_from_objattr(SourceFile),
-        "TargetKeyPtr", TargetKey, "SourceFilePtr", SourceFile);
+        "TargetKeyPtr", TargetKey->ObjectName->Buffer, "TargetKeyLen", TargetKey->ObjectName->Length,
+        "SourceFilePtr", SourceFile->ObjectName->Buffer, "SourceFileLen", SourceFile->ObjectName->Length);
     return ret;
 }
 
@@ -250,9 +254,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtLoadKey2,
     __in  ULONG Flags
 ) {
     NTSTATUS ret = Old_NtLoadKey2(TargetKey, SourceFile, Flags);
-    LOQ("oolpp", "TargetKey", unistr_from_objattr(TargetKey),
+    LOQ("oolpipi", "TargetKey", unistr_from_objattr(TargetKey),
         "SourceFile", unistr_from_objattr(SourceFile), "Flags", Flags,
-        "TargetKeyPtr", TargetKey, "SourceFilePtr", SourceFile);
+        "TargetKeyPtr", TargetKey->ObjectName->Buffer, "TargetKeyLen", TargetKey->ObjectName->Length,
+        "SourceFilePtr", SourceFile->ObjectName->Buffer, "SourceFileLen", SourceFile->ObjectName->Length);
     return ret;
 }
 
@@ -264,10 +269,11 @@ HOOKDEF(NTSTATUS, WINAPI, NtLoadKeyEx,
 ) {
     NTSTATUS ret = Old_NtLoadKeyEx(TargetKey, SourceFile, Flags,
         TrustClassKey);
-    LOQ("poolpp", "TrustClassKey", TrustClassKey,
+    LOQ("poolpipi", "TrustClassKey", TrustClassKey,
         "TargetKey", unistr_from_objattr(TargetKey),
         "SourceFile", unistr_from_objattr(SourceFile), "Flags", Flags,
-        "TargetKeyPtr", TargetKey, "SourceFilePtr", SourceFile);
+        "TargetKeyPtr", TargetKey->ObjectName->Buffer, "TargetKeyLen", TargetKey->ObjectName->Length,
+        "SourceFilePtr", SourceFile->ObjectName->Buffer, "SourceFileLen", SourceFile->ObjectName->Length);
     return ret;
 }
 
@@ -280,10 +286,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtQueryKey,
 ) {
     NTSTATUS ret = Old_NtQueryKey(KeyHandle, KeyInformationClass,
         KeyInformation, Length, ResultLength);
-    LOQ("pSlpip", "KeyHandle", KeyHandle,
+    LOQ("pSlpi", "KeyHandle", KeyHandle,
         "KeyInformation", Length, KeyInformation,
         "KeyInformationClass", KeyInformationClass, "KeyInformationPtr", KeyInformation,
-        "KeyInformationLen", Length, "ResultLengthPtr", ResultLength);
+        "KeyInformationLen", *ResultLength);
     return ret;
 }
 
