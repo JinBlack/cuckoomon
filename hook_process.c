@@ -42,8 +42,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateProcess,
     NTSTATUS ret = Old_NtCreateProcess(ProcessHandle, DesiredAccess,
         ObjectAttributes, ParentProcess, InheritObjectTable, SectionHandle,
         DebugPort, ExceptionPort);
-    LOQ("PpOp", "ProcessHandle", ProcessHandle, "DesiredAccess", DesiredAccess,
-        "FileName", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes);
+    LOQ("PpOpi", "ProcessHandle", ProcessHandle, "DesiredAccess", DesiredAccess,
+        "FileName", ObjectAttributes, "FileNamePtr", ObjectAttributes->ObjectName->Buffer,
+        "FileNameLen", ObjectAttributes->ObjectName->Length);
     if(NT_SUCCESS(ret)) {
         pipe("PROCESS:%d", pid_from_process_handle(*ProcessHandle));
         disable_sleep_skip();
