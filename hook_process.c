@@ -66,8 +66,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateProcessEx,
     NTSTATUS ret = Old_NtCreateProcessEx(ProcessHandle, DesiredAccess,
         ObjectAttributes, ParentProcess, Flags, SectionHandle, DebugPort,
         ExceptionPort, InJob);
-    LOQ("PpOp", "ProcessHandle", ProcessHandle, "DesiredAccess", DesiredAccess,
-        "FileName", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes);
+    LOQ("PpOpi", "ProcessHandle", ProcessHandle, "DesiredAccess", DesiredAccess,
+        "FileName", ObjectAttributes, "FileNamePtr", ObjectAttributes->ObjectName->Buffer,
+        "FileNameLen", ObjectAttributes->ObjectName->Length);
     if(NT_SUCCESS(ret)) {
         pipe("PROCESS:%d", pid_from_process_handle(*ProcessHandle));
         disable_sleep_skip();
@@ -96,16 +97,22 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateUserProcess,
         ProcessObjectAttributes, ThreadObjectAttributes,
         ProcessFlags, ThreadFlags, ProcessParameters,
         CreateInfo, AttributeList);
-    LOQ("PPppOOoopp", "ProcessHandle", ProcessHandle,
+    LOQ("PPppOOoo", "ProcessHandle", ProcessHandle,
         "ThreadHandle", ThreadHandle,
         "ProcessDesiredAccess", ProcessDesiredAccess,
         "ThreadDesiredAccess", ThreadDesiredAccess,
         "ProcessFileName", ProcessObjectAttributes,
+        "ProcessFileNamePtr", ProcessObjectAttributes->ObjectName->Buffer,
+        "ProcessFileNameLen", ProcessObjectAttributes->ObjectName->Length,
         "ThreadName", ThreadObjectAttributes,
+        "ThreadFileNamePtr", ThreadObjectAttributes->ObjectName->Buffer,
+        "ThreadFileNameLen", ThreadObjectAttributes->ObjectName->Length,
         "ImagePathName", &ProcessParameters->ImagePathName,
-        "CommandLine", &ProcessParameters->CommandLine, 
-        "ProcessObjectAttributesPtr", ProcessObjectAttributes, 
-        "ThreadObjectAttributesPtr", ThreadObjectAttributes);
+        //"ImagePathNamePtr", (ProcessParameters->ImagePathName).Buffer,
+        //"ImagePathNameLen", (ProcessParameters->ImagePathName).Length,
+        "CommandLine", &ProcessParameters->CommandLine)
+        //"CommandLinePtr", (ProcessParameters->CommandLine).Buffer,
+        //"CommandLineLen", (ProcessParameters->CommandLine).Length,       
     if(NT_SUCCESS(ret)) {
         pipe("PROCESS:%d,%d", pid_from_process_handle(*ProcessHandle),
             pid_from_thread_handle(*ThreadHandle));
@@ -164,9 +171,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenProcess,
 
     NTSTATUS ret = Old_NtOpenProcess(ProcessHandle, DesiredAccess,
         ObjectAttributes, ClientId);
-    LOQ("PpPp", "ProcessHandle", ProcessHandle,
+    LOQ("PpP", "ProcessHandle", ProcessHandle,
         "DesiredAccess", DesiredAccess,
-        "ProcessIdentifier", &pid, "ObjectAttributesPtr", ObjectAttributes);
+        "ProcessIdentifier", &pid);
     /*
     if(NT_SUCCESS(ret)) {
         // let's do an extra check here, because the msdn documentation is
@@ -205,9 +212,9 @@ HOOKDEF(NTSTATUS, WINAPI, NtCreateSection,
     NTSTATUS ret = Old_NtCreateSection(SectionHandle, DesiredAccess,
         ObjectAttributes, MaximumSize, SectionPageProtection,
         AllocationAttributes, FileHandle);
-    LOQ("PpOpp", "SectionHandle", SectionHandle,
+    LOQ("PpOp", "SectionHandle", SectionHandle,
         "DesiredAccess", DesiredAccess, "ObjectAttributes", ObjectAttributes,
-        "FileHandle", FileHandle, "ObjectAttributesPtr", ObjectAttributes);
+        "FileHandle", FileHandle);
     return ret;
 }
 
@@ -235,7 +242,7 @@ HOOKDEF(NTSTATUS, WINAPI, NtOpenSection,
     NTSTATUS ret = Old_NtOpenSection(SectionHandle, DesiredAccess,
         ObjectAttributes);
     LOQ("PpOp", "SectionHandle", SectionHandle, "DesiredAccess", DesiredAccess,
-        "ObjectAttributes", ObjectAttributes, "ObjectAttributesPtr", ObjectAttributes);
+        "ObjectAttributes", ObjectAttributes);
     return ret;
 }
 
@@ -316,7 +323,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtAllocateVirtualMemory,
     NTSTATUS ret = Old_NtAllocateVirtualMemory(ProcessHandle, BaseAddress,
         ZeroBits, RegionSize, AllocationType, Protect);
     LOQ("pPPp", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
-        "RegionSize", RegionSize, "Protection", Protect);
+        "RegionSize", RegionSize, "Protection", Protect,
+        "MemoryPtr", BaseAddress, "MemoryLen", RegionSize);
     return ret;
 }
 
@@ -332,9 +340,12 @@ HOOKDEF(NTSTATUS, WINAPI, NtReadVirtualMemory,
     BOOL ret = Old_NtReadVirtualMemory(ProcessHandle, BaseAddress, Buffer,
         NumberOfBytesToRead, NumberOfBytesReaded);
 
-    LOQ("2pBpP", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
-        "Buffer", NumberOfBytesReaded, Buffer, "BufferPtr", Buffer, 
-        "BytesWrittenInBuffer", NumberOfBytesReaded);
+    LOQ("2pBpPipp", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
+        "Buffer", NumberOfBytesToRead, Buffer, "BufferPtr", Buffer, 
+        "BytesWrittenInBuffer", NumberOfBytesReaded,
+        "BufferLen", NumberOfBytesToRead,
+        "MemoryPtr", BaseAddress, "MomoryLen", NumberOfBytesToRead
+        );
     return ret;
 }
 
@@ -369,8 +380,10 @@ HOOKDEF(NTSTATUS, WINAPI, NtWriteVirtualMemory,
         NumberOfBytesToWrite, NumberOfBytesWritten);
 
     LOQ("2pBpP", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
-        "Buffer", NumberOfBytesWritten, Buffer, "BufferPtr", Buffer, 
-        "BytesWrittenInBuffer", NumberOfBytesWritten);
+        "Buffer", NumberOfBytesToWrite, Buffer, "BufferPtr", Buffer, 
+        "BytesWrittenInBuffer", NumberOfBytesWritten,
+        "BufferLen", NumberOfBytesToWrite,
+        "MemoryPtr", BaseAddress, "MemoryLen", NumberOfBytesToWrite);
     return ret;
 }
 
@@ -404,7 +417,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtProtectVirtualMemory,
     LOQ("pPPpP", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
         "NumberOfBytesProtected", NumberOfBytesToProtect,
         "NewAccessProtection", NewAccessProtection,
-        "OldAccessProtection", OldAccessProtection);
+        "OldAccessProtection", OldAccessProtection,
+        "MemoryPtr", BaseAddress, "MemoryLen", NumberOfBytesToProtect);
     return ret;
 }
 
@@ -433,7 +447,8 @@ HOOKDEF(NTSTATUS, WINAPI, NtFreeVirtualMemory,
     NTSTATUS ret = Old_NtFreeVirtualMemory(ProcessHandle, BaseAddress,
         RegionSize, FreeType);
     LOQ("pPPp", "ProcessHandle", ProcessHandle, "BaseAddress", BaseAddress,
-        "RegionSize", RegionSize, "FreeType", FreeType);
+        "RegionSize", RegionSize, "FreeType", FreeType,
+        "MemoryPtr", BaseAddress, "MemoryLen", RegionSize);
     return ret;
 }
 
